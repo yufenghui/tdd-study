@@ -8,7 +8,7 @@ import com.yufenghui.tdd.args.annotation.Option;
  * @author yufenghui
  * @date 2022/5/19 22:05
  */
-public class Options {
+public class MultiOptions {
 
     @Option("l")
     private boolean logging;
@@ -20,7 +20,7 @@ public class Options {
     private String directory;
 
 
-    public Options(boolean logging, int port, String directory) {
+    public MultiOptions(boolean logging, int port, String directory) {
         this.logging = logging;
         this.port = port;
         this.directory = directory;

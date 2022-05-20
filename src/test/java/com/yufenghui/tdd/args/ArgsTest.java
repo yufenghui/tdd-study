@@ -1,8 +1,6 @@
 package com.yufenghui.tdd.args;
 
-import com.yufenghui.tdd.args.option.BooleanOption;
-import com.yufenghui.tdd.args.option.ListOptions;
-import com.yufenghui.tdd.args.option.Options;
+import com.yufenghui.tdd.args.option.*;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -43,11 +41,47 @@ public class ArgsTest {
 
     /*
      * TODO - Integer: -p 8080
+     */
+    @Test
+    public void should_parse_int_as_option_value() {
+
+        IntOption option = Args.parse(IntOption.class, "-p", "8080");
+
+        Assert.assertNotNull(option);
+        Assert.assertEquals(8080, option.getPort());
+    }
+
+
+    /*
      * TODO - String: -d /usr/logs
      *
+     */
+    @Test
+    public void should_parse_string_as_option_value() {
+
+        StringOption option = Args.parse(StringOption.class, "-d", "/usr/logs");
+
+        Assert.assertNotNull(option);
+        Assert.assertEquals("/usr/logs", option.getDirectory());
+    }
+
+
+    /*
      * Multi Option:
      * TODO - -l -p 8080 -d /usr/logs
      *
+     */
+    @Test
+    public void should_parse_multi_options() {
+
+        MultiOptions multiOptions = Args.parse(MultiOptions.class, "-l", "-p", "8080", "-d", "/usr/logs");
+
+        Assert.assertTrue(multiOptions.isLogging());
+        Assert.assertEquals(8080, multiOptions.getPort());
+        Assert.assertEquals("/usr/logs", multiOptions.getDirectory());
+    }
+
+    /*
      * Sad Path:
      * TODO - Boolean: -l p / -l f t
      * TODO - Integer: -p/ -p 8080 8081
@@ -59,17 +93,6 @@ public class ArgsTest {
      * TODO - String: ""
      *
      */
-
-    @Test
-    @Ignore
-    public void should_example_1() {
-
-        Options options = Args.parse(Options.class, "-l", "-p", "8080", "-d", "/usr/logs");
-
-        Assert.assertTrue(options.isLogging());
-        Assert.assertEquals(8080, options.getPort());
-        Assert.assertEquals("/usr/logs", options.getDirectory());
-    }
 
 
     // -g this is a list -d 1 2 3 5
