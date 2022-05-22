@@ -3,9 +3,10 @@ package com.yufenghui.tdd.args;
 import com.yufenghui.tdd.args.option.BooleanOption;
 import com.yufenghui.tdd.args.option.ListOptions;
 import com.yufenghui.tdd.args.option.Options;
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * TODO
@@ -26,8 +27,8 @@ public class ArgsTest {
 
         BooleanOption option = Args.parse(BooleanOption.class, "-l");
 
-        Assert.assertNotNull(option);
-        Assert.assertTrue(option.isLogging());
+        assertNotNull(option);
+        assertTrue(option.isLogging());
 
     }
 
@@ -36,8 +37,8 @@ public class ArgsTest {
 
         BooleanOption option = Args.parse(BooleanOption.class);
 
-        Assert.assertNotNull(option);
-        Assert.assertFalse(option.isLogging());
+        assertNotNull(option);
+        assertFalse(option.isLogging());
 
     }
 
@@ -61,26 +62,26 @@ public class ArgsTest {
      */
 
     @Test
-    @Ignore
+    @Disabled
     public void should_example_1() {
 
         Options options = Args.parse(Options.class, "-l", "-p", "8080", "-d", "/usr/logs");
 
-        Assert.assertTrue(options.isLogging());
-        Assert.assertEquals(8080, options.getPort());
-        Assert.assertEquals("/usr/logs", options.getDirectory());
+        assertTrue(options.isLogging());
+        assertEquals(8080, options.getPort());
+        assertEquals("/usr/logs", options.getDirectory());
     }
 
 
     // -g this is a list -d 1 2 3 5
     @Test
-    @Ignore
+    @Disabled
     public void should_example_2() {
 
         ListOptions options = Args.parse(ListOptions.class, "-g", "this", "is", "a", "list", "-d", "1", "2", "3", "5");
 
-        Assert.assertArrayEquals(new String[]{"this", "is", "a", "list"}, options.getGroup());
-        Assert.assertArrayEquals(new int[]{1, 2, 3, 5}, options.getDecimals());
+        assertArrayEquals(new String[]{"this", "is", "a", "list"}, options.getGroup());
+        assertArrayEquals(new int[]{1, 2, 3, 5}, options.getDecimals());
     }
 
 }
