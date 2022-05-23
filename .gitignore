@@ -15,6 +15,14 @@ dependency-reduced-pom.xml
 buildNumber.properties
 .mvn/timing.properties
 
+# gradle
+.gradle
+.gradle/*
+
+# General build files
+**/build/*
+**/out/*
+
 #idea
 .idea/
 *.iml
@@ -22,8 +30,6 @@ logs/
 .flattened-pom.xml
 derby.log
 .extract
-user-platform/user-web/db
-db/user-platform/
 
 # eclipse
 *.pydevproject
