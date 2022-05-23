@@ -1,2 +1,4 @@
 rootProject.name = 'tdd-study'
 include 'args'
+include 'di'
+
