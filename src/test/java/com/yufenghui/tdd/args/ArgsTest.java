@@ -1,9 +1,11 @@
 package com.yufenghui.tdd.args;
 
+
 import com.yufenghui.tdd.args.option.*;
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * TODO
@@ -24,8 +26,8 @@ public class ArgsTest {
 
         BooleanOption option = Args.parse(BooleanOption.class, "-l");
 
-        Assert.assertNotNull(option);
-        Assert.assertTrue(option.isLogging());
+        assertNotNull(option);
+        assertTrue(option.isLogging());
 
     }
 
@@ -34,8 +36,8 @@ public class ArgsTest {
 
         BooleanOption option = Args.parse(BooleanOption.class);
 
-        Assert.assertNotNull(option);
-        Assert.assertFalse(option.isLogging());
+        assertNotNull(option);
+        assertFalse(option.isLogging());
 
     }
 
@@ -47,8 +49,8 @@ public class ArgsTest {
 
         IntOption option = Args.parse(IntOption.class, "-p", "8080");
 
-        Assert.assertNotNull(option);
-        Assert.assertEquals(8080, option.getPort());
+        assertNotNull(option);
+        assertEquals(8080, option.getPort());
     }
 
 
@@ -61,8 +63,8 @@ public class ArgsTest {
 
         StringOption option = Args.parse(StringOption.class, "-d", "/usr/logs");
 
-        Assert.assertNotNull(option);
-        Assert.assertEquals("/usr/logs", option.getDirectory());
+        assertNotNull(option);
+        assertEquals("/usr/logs", option.getDirectory());
     }
 
 
@@ -76,9 +78,9 @@ public class ArgsTest {
 
         MultiOptions multiOptions = Args.parse(MultiOptions.class, "-l", "-p", "8080", "-d", "/usr/logs");
 
-        Assert.assertTrue(multiOptions.isLogging());
-        Assert.assertEquals(8080, multiOptions.getPort());
-        Assert.assertEquals("/usr/logs", multiOptions.getDirectory());
+        assertTrue(multiOptions.isLogging());
+        assertEquals(8080, multiOptions.getPort());
+        assertEquals("/usr/logs", multiOptions.getDirectory());
     }
 
     /*
@@ -94,16 +96,15 @@ public class ArgsTest {
      *
      */
 
-
     // -g this is a list -d 1 2 3 5
     @Test
-    @Ignore
+    @Disabled
     public void should_example_2() {
 
         ListOptions options = Args.parse(ListOptions.class, "-g", "this", "is", "a", "list", "-d", "1", "2", "3", "5");
 
-        Assert.assertArrayEquals(new String[]{"this", "is", "a", "list"}, options.getGroup());
-        Assert.assertArrayEquals(new int[]{1, 2, 3, 5}, options.getDecimals());
+        assertArrayEquals(new String[]{"this", "is", "a", "list"}, options.getGroup());
+        assertArrayEquals(new int[]{1, 2, 3, 5}, options.getDecimals());
     }
 
 }
