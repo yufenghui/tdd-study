@@ -9,22 +9,23 @@ version '1.0-SNAPSHOT'
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
+ext {
+    springBootVersion = '2.3.12.RELEASE'
+    springMicroVersion = '1.0.0-RC8'
+}
 
 allprojects {
     apply plugin: "java-library"
     apply plugin: "jacoco"
 
     repositories {
-        mavenCentral()
+        maven {
+            url 'https://nexus.vchangyi.com/repository/maven-public/'
+        }
         maven {
             url 'https://maven.aliyun.com/nexus/content/groups/public/'
         }
-    }
-
-    configurations.all {
-        resolutionStrategy {
-            cacheChangingModulesFor(0, 'seconds')
-        }
+        mavenCentral()
     }
 
     test {
@@ -42,5 +43,10 @@ allprojects {
         testRuntimeOnly("org.junit.platform:junit-platform-runner:1.8.2")
 
         testImplementation("org.mockito:mockito-core:4.3.1")
+
+        annotationProcessor 'org.projectlombok:lombok:1.18.20'
+        compileOnly 'org.projectlombok:lombok:1.18.20'
+        testAnnotationProcessor 'org.projectlombok:lombok:1.18.20'
+        testCompileOnly 'org.projectlombok:lombok:1.18.20'
     }
 }

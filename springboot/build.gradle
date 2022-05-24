@@ -1,0 +1,19 @@
+buildscript {
+    repositories {
+        gradlePluginPortal()
+    }
+
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}" as Object)
+    }
+}
+
+apply plugin: 'org.springframework.boot'
+
+dependencies {
+    implementation("com.vchangyi.boot:spring-micro-component-web-mvc:${springMicroVersion}")
+    implementation("com.vchangyi.boot:spring-micro-component-datasource-druid:${springMicroVersion}")
+    implementation("com.vchangyi.boot:spring-micro-component-data-mybatisplus:${springMicroVersion}")
+
+    testImplementation("org.springframework.boot:spring-boot-starter-test:${springBootVersion}")
+}
