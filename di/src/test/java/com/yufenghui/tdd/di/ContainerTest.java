@@ -115,7 +115,7 @@ public class ContainerTest {
             @Test
             public void should_throw_exception_if_dependencies_not_exist() {
                 config.bind(Component.class, ComponentWithConstructorNoDependencyExist.class);
-                DependencyNotFoundException exception = assertThrows(DependencyNotFoundException.class, config::getContext);
+                DependencyNotFoundException exception = assertThrows(DependencyNotFoundException.class, () -> config.getContext());
 
                 assertEquals(String.class, exception.getDependency());
                 assertEquals(Component.class, exception.getComponent());
@@ -124,8 +124,8 @@ public class ContainerTest {
             @Test
             public void should_throw_exception_if_transitive_dependencies_not_exist() {
                 config.bind(Component.class, ComponentWithInjectConstructor.class);
-                config.bind(Dependency.class, DependencyWithNoDependencyExist.class);
-                DependencyNotFoundException exception = assertThrows(DependencyNotFoundException.class, config::getContext);
+                config.bind(Dependency.class, DependencyWithInjectConstructor.class);
+                DependencyNotFoundException exception = assertThrows(DependencyNotFoundException.class, () -> config.getContext());
 
                 assertEquals(String.class, exception.getDependency());
                 assertEquals(Dependency.class, exception.getComponent());
@@ -137,7 +137,7 @@ public class ContainerTest {
                 config.bind(Component.class, ComponentWithInjectConstructor.class);
                 config.bind(Dependency.class, DependencyDependOnComponent.class);
 
-                CyclicDependencyFoundException exception = assertThrows(CyclicDependencyFoundException.class, () -> config.getContext().get(Component.class));
+                CyclicDependencyFoundException exception = assertThrows(CyclicDependencyFoundException.class, () -> config.getContext());
 
                 List<Class<?>> components = List.of(exception.getComponents());
 
@@ -152,7 +152,7 @@ public class ContainerTest {
                 config.bind(Dependency.class, DependencyDependOnAnotherDependency.class);
                 config.bind(AnotherDependency.class, AnotherDependencyDependOnComponent.class);
 
-                CyclicDependencyFoundException exception = assertThrows(CyclicDependencyFoundException.class, () -> config.getContext().get(Component.class));
+                CyclicDependencyFoundException exception = assertThrows(CyclicDependencyFoundException.class, () -> config.getContext());
                 List<Class<?>> components = List.of(exception.getComponents());
 
                 assertEquals(3, components.size());
@@ -275,21 +275,6 @@ class DependencyWithInjectConstructor implements Dependency {
 
     @Inject
     public DependencyWithInjectConstructor(String dependency) {
-        this.dependency = dependency;
-    }
-
-    public String getDependency() {
-        return dependency;
-    }
-
-}
-
-class DependencyWithNoDependencyExist implements Dependency {
-
-    private String dependency;
-
-    @Inject
-    public DependencyWithNoDependencyExist(String dependency) {
         this.dependency = dependency;
     }
 
