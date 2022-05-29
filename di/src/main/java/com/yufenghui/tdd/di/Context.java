@@ -1,12 +1,13 @@
 package com.yufenghui.tdd.di;
 
+import com.yufenghui.tdd.di.exception.DependencyNotFoundException;
+import com.yufenghui.tdd.di.exception.IllegalComponentException;
 import jakarta.inject.Inject;
 import jakarta.inject.Provider;
 
 import java.lang.reflect.Constructor;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Context
@@ -24,34 +25,41 @@ public class Context {
     }
 
     public <Type, Implementation extends Type> void bind(Class<Type> type, Class<Implementation> implementation) {
-        providers.put(type, (Provider<Type>) () -> {
-            try {
-                Constructor<Type> constructor = getInjectConstructor(implementation);
-                Object[] args = Arrays.stream(constructor.getParameters()).map(p -> get(p.getType())).toArray(Object[]::new);
+        Constructor<Type> constructor = getConstructor(implementation);
 
+        providers.put(type, (Provider<Type>) () -> {
+            Object[] args = Arrays.stream(constructor.getParameters())
+                    .map(p -> get(p.getType()).orElseThrow(() -> new DependencyNotFoundException("dependency not found.")))
+                    .toArray(Object[]::new);
+
+            try {
                 return constructor.newInstance(args);
             } catch (Exception e) {
-                throw new RuntimeException("new instance with constructor failed.", e);
+                throw new RuntimeException("bind component failed.", e);
             }
         });
     }
 
-    private <Type, Implementation extends Type> Constructor<Type> getInjectConstructor(Class<Implementation> implementation) {
+    private <Type, Implementation extends Type> Constructor<Type> getConstructor(Class<Implementation> implementation) {
+        List<Constructor<?>> constructorList = Arrays.stream(implementation.getConstructors())
+                .filter(c -> c.isAnnotationPresent(Inject.class))
+                .collect(Collectors.toList());
 
-        Constructor<Type> constructor = (Constructor<Type>) Arrays.stream(implementation.getConstructors()).filter(c -> c.isAnnotationPresent(Inject.class))
-                .findFirst().orElseGet(() -> {
+        if (constructorList.size() > 1) {
+            throw new IllegalComponentException("more than one inject constructor exist.");
+        }
+
+        return (Constructor<Type>) constructorList.stream().findFirst().orElseGet(() -> {
                     try {
                         return implementation.getConstructor();
                     } catch (Exception e) {
-                        throw new RuntimeException("cannot find constructor.", e);
+                        throw new IllegalComponentException("cannot find default constructor.", e);
                     }
                 });
-
-        return constructor;
     }
 
-    public <Type> Type get(Class<Type> type) {
-        return (Type) providers.get(type).get();
+    public <Type> Optional<Type> get(Class<Type> type) {
+        return Optional.ofNullable(providers.get(type)).map(t -> (Type) t.get());
     }
 
 }
