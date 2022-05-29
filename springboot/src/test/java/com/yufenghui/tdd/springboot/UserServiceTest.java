@@ -89,6 +89,11 @@ public class UserServiceTest {
     @Nested
     public class UserSave {
 
+        @AfterEach
+        public void clear_database() {
+            userService.remove(null);
+        }
+
         @Test
         public void test_save_user_to_database() {
             User user = User.builder()
