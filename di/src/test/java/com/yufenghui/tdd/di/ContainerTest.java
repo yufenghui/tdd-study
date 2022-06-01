@@ -167,6 +167,25 @@ public class ContainerTest {
         @Nested
         public class FieldInjection {
 
+            // TODO: inject field
+            @Test
+            public void should_inject_dependencies_via_field() {
+                Dependency dependency = new Dependency() {
+                };
+
+                config.bind(Dependency.class, dependency);
+                config.bind(Component.class, ComponentWithFieldInject.class);
+
+                Component component = config.getContext().get(Component.class).get();
+
+                assertNotNull(component);
+                assertSame(dependency, ((ComponentWithFieldInject) component).getDependency());
+            }
+
+            // TODO: throw exception if dependency not found
+            // TODO: throw exception if field is final
+            // TODO: throw exception if cyclic dependency
+
         }
 
         @Nested
@@ -265,6 +284,21 @@ class ComponentWithConstructorNoDependencyExist implements Component {
     @Inject
     public ComponentWithConstructorNoDependencyExist(String name) {
         this.name = name;
+    }
+
+}
+
+class ComponentWithFieldInject implements Component {
+
+    @Inject
+    private Dependency dependency;
+
+    public Dependency getDependency() {
+        return dependency;
+    }
+
+    public void setDependency(Dependency dependency) {
+        this.dependency = dependency;
     }
 
 }
