@@ -3,14 +3,11 @@ package com.yufenghui.tdd.di;
 import com.yufenghui.tdd.di.exception.IllegalComponentException;
 import jakarta.inject.Inject;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Parameter;
+import java.lang.reflect.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * ConstructorInjectProvider
@@ -22,10 +19,12 @@ class ConstructorInjectProvider<T> implements ComponentProvider<T> {
 
     private Constructor<T> constructor;
     private List<Field> fields;
+    private List<Method> methods;
 
     public ConstructorInjectProvider(Class<T> component) {
         this.constructor = getInjectConstructor(component);
         this.fields = getInjectFields(component);
+        this.methods = getInjectMethods(component);
     }
 
     private Constructor<T> getInjectConstructor(Class<T> component) {
@@ -52,6 +51,12 @@ class ConstructorInjectProvider<T> implements ComponentProvider<T> {
                 .collect(Collectors.toList());
     }
 
+    private <T> List<Method> getInjectMethods(Class<T> component) {
+        return Arrays.stream(component.getDeclaredMethods())
+                .filter(f -> f.isAnnotationPresent(Inject.class))
+                .collect(Collectors.toList());
+    }
+
     @Override
     public T get(Context context) {
         try {
@@ -66,6 +71,17 @@ class ConstructorInjectProvider<T> implements ComponentProvider<T> {
                 field.set(instance, dependency);
             }
 
+            for (Method method : methods) {
+                Parameter[] parameters = method.getParameters();
+                if(parameters.length == 0) {
+                    method.invoke(instance);
+                } else {
+                    Object[] dependencies = Arrays.stream(parameters).map(p -> context.get(p.getType()).get()).toArray();
+                    method.setAccessible(true);
+                    method.invoke(instance, dependencies);
+                }
+            }
+
             return instance;
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException("bind component failed.", e);
@@ -74,9 +90,25 @@ class ConstructorInjectProvider<T> implements ComponentProvider<T> {
 
     @Override
     public List<Class<?>> getDependencies() {
-        return Stream.concat(Arrays.stream(constructor.getParameters()).map(Parameter::getType),
-                Arrays.stream(constructor.getClass().getDeclaredFields()).filter(f -> f.isAnnotationPresent(Inject.class)).map(f -> f.getType())
-        ).collect(Collectors.toList());
+        List<Class<?>> dependencies = new ArrayList<>();
+
+        List<Class<?>> constructorDependencies = Arrays.stream(constructor.getParameters())
+                .map(Parameter::getType)
+                .collect(Collectors.toList());
+        dependencies.addAll(constructorDependencies);
+
+        List<Class<?>> fieldDependencies = Arrays.stream(constructor.getClass().getDeclaredFields())
+                .filter(f -> f.isAnnotationPresent(Inject.class))
+                .map(f -> f.getType())
+                .collect(Collectors.toList());
+        dependencies.addAll(fieldDependencies);
+
+        Arrays.stream(constructor.getClass().getDeclaredMethods())
+                .filter(m -> m.isAnnotationPresent(Inject.class))
+                .map(m -> Arrays.stream(m.getParameters()).map(Parameter::getType).collect(Collectors.toList()))
+                .forEach(list -> dependencies.addAll(list));
+
+        return dependencies;
     }
 
 }

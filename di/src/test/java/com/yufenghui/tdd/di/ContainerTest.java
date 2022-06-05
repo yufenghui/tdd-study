@@ -191,6 +191,55 @@ public class ContainerTest {
         @Nested
         public class MethodInjection {
 
+            // TODO: inject method with no dependency will be called
+            @Test
+            public void should_inject__method_with_no_dependency_called() {
+                config.bind(Component.class, ComponentWithNoArgsMethodInject.class);
+
+                Component component = config.getContext().get(Component.class).get();
+
+                assertNotNull(component);
+                assertSame("1.0", ((ComponentWithNoArgsMethodInject) component).getVersion());
+            }
+
+            // TODO: inject method with dependency will be injected
+            @Test
+            public void should_inject_dependency_via_method() {
+                Dependency dependency = new Dependency() {
+                };
+
+                config.bind(Dependency.class, dependency);
+                config.bind(Component.class, ComponentWithMethodInject.class);
+
+                Component component = config.getContext().get(Component.class).get();
+
+                assertNotNull(component);
+                assertSame(dependency, ((ComponentWithMethodInject) component).getDependency());
+            }
+
+            // TODO: inject method with multi dependency will be injected
+            @Test
+            public void should_inject_multi_dependency_via_method() {
+                Dependency dependency = new Dependency() {
+                };
+                AnotherDependency anotherDependency = new AnotherDependency() {
+                };
+
+                config.bind(Dependency.class, dependency);
+                config.bind(AnotherDependency.class, anotherDependency);
+                config.bind(Component.class, ComponentWithMultiArgsMethodInject.class);
+
+                Component component = config.getContext().get(Component.class).get();
+
+                assertNotNull(component);
+                assertSame(dependency, ((ComponentWithMultiArgsMethodInject) component).getDependency());
+                assertSame(anotherDependency, ((ComponentWithMultiArgsMethodInject) component).getAnotherDependency());
+            }
+
+            // TODO: override inject method from super class
+            // TODO: include dependency from inject method
+            // TODO: throw exception if type parameter defined
+
         }
 
     }
@@ -299,6 +348,52 @@ class ComponentWithFieldInject implements Component {
 
     public void setDependency(Dependency dependency) {
         this.dependency = dependency;
+    }
+
+}
+
+class ComponentWithMethodInject implements Component {
+
+    private Dependency dependency;
+
+    public Dependency getDependency() {
+        return dependency;
+    }
+
+    @Inject
+    public void setDependency(Dependency dependency) {
+        this.dependency = dependency;
+    }
+
+}
+
+class ComponentWithNoArgsMethodInject implements Component {
+
+    @Inject
+    public String getVersion() {
+        return "1.0";
+    }
+
+}
+
+class ComponentWithMultiArgsMethodInject implements Component {
+
+    private Dependency dependency;
+
+    private AnotherDependency anotherDependency;
+
+    public Dependency getDependency() {
+        return dependency;
+    }
+
+    public AnotherDependency getAnotherDependency() {
+        return anotherDependency;
+    }
+
+    @Inject
+    public void setDependencies(Dependency dependency, AnotherDependency anotherDependency) {
+        this.dependency = dependency;
+        this.anotherDependency = anotherDependency;
     }
 
 }
