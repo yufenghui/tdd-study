@@ -6,6 +6,7 @@ import jakarta.inject.Inject;
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -52,9 +53,31 @@ class ConstructorInjectProvider<T> implements ComponentProvider<T> {
     }
 
     private <T> List<Method> getInjectMethods(Class<T> component) {
-        return Arrays.stream(component.getDeclaredMethods())
-                .filter(f -> f.isAnnotationPresent(Inject.class))
-                .collect(Collectors.toList());
+        List<Method> injectMethods = new ArrayList<>();
+        Class<?> current = component;
+
+        while (current != Object.class) {
+            List<Method> methods = Arrays.stream(current.getDeclaredMethods())
+                    .filter(m -> m.isAnnotationPresent(Inject.class))
+                    .filter(
+                            m -> injectMethods.stream().noneMatch(
+                                    o -> o.getName().equals(m.getName()) && Arrays.equals(o.getParameterTypes(), m.getParameterTypes())
+                            )
+                    )
+                    .filter(
+                            m -> Arrays.stream(component.getDeclaredMethods()).filter(m1 -> !m1.isAnnotationPresent(Inject.class))
+                                    .noneMatch(
+                                            o -> o.getName().equals(m.getName()) && Arrays.equals(o.getParameterTypes(), m.getParameterTypes())
+                                    )
+                    )
+                    .collect(Collectors.toList());
+            injectMethods.addAll(methods);
+
+            current = current.getSuperclass();
+        }
+
+        Collections.reverse(injectMethods);
+        return injectMethods;
     }
 
     @Override
@@ -97,16 +120,13 @@ class ConstructorInjectProvider<T> implements ComponentProvider<T> {
                 .collect(Collectors.toList());
         dependencies.addAll(constructorDependencies);
 
-        List<Class<?>> fieldDependencies = Arrays.stream(constructor.getClass().getDeclaredFields())
-                .filter(f -> f.isAnnotationPresent(Inject.class))
+        List<Class<?>> fieldDependencies = fields.stream()
                 .map(f -> f.getType())
                 .collect(Collectors.toList());
         dependencies.addAll(fieldDependencies);
 
-        Arrays.stream(constructor.getClass().getDeclaredMethods())
-                .filter(m -> m.isAnnotationPresent(Inject.class))
-                .map(m -> Arrays.stream(m.getParameters()).map(Parameter::getType).collect(Collectors.toList()))
-                .forEach(list -> dependencies.addAll(list));
+        List<Class<?>> methodDependencies = methods.stream().flatMap(m -> Arrays.stream(m.getParameterTypes())).collect(Collectors.toList());;
+        dependencies.addAll(methodDependencies);
 
         return dependencies;
     }

@@ -44,6 +44,7 @@ public class ContainerTest {
 
         // TODO: abstract class
         // TODO: interface
+
         // TODO: component not exist
         @Test
         public void should_return_empty_if_component_not_exist() {
@@ -191,9 +192,55 @@ public class ContainerTest {
         @Nested
         public class MethodInjection {
 
+            static class ComponentWithMethodInject implements Component {
+
+                private Dependency dependency;
+
+                public Dependency getDependency() {
+                    return dependency;
+                }
+
+                @Inject
+                public void setDependency(Dependency dependency) {
+                    this.dependency = dependency;
+                }
+
+            }
+
+            static class ComponentWithNoArgsMethodInject implements Component {
+
+                @Inject
+                public String getVersion() {
+                    return "1.0";
+                }
+
+            }
+
+            static class ComponentWithMultiArgsMethodInject implements Component {
+
+                private Dependency dependency;
+
+                private AnotherDependency anotherDependency;
+
+                public Dependency getDependency() {
+                    return dependency;
+                }
+
+                public AnotherDependency getAnotherDependency() {
+                    return anotherDependency;
+                }
+
+                @Inject
+                public void setDependencies(Dependency dependency, AnotherDependency anotherDependency) {
+                    this.dependency = dependency;
+                    this.anotherDependency = anotherDependency;
+                }
+
+            }
+
             // TODO: inject method with no dependency will be called
             @Test
-            public void should_inject__method_with_no_dependency_called() {
+            public void should_inject_method_with_no_dependency_called() {
                 config.bind(Component.class, ComponentWithNoArgsMethodInject.class);
 
                 Component component = config.getContext().get(Component.class).get();
@@ -237,7 +284,72 @@ public class ContainerTest {
             }
 
             // TODO: override inject method from super class
+            static class SuperClassWithInjectMethod {
+                int superCalled = 0;
+
+                @Inject
+                void install() {
+                    superCalled++;
+                }
+            }
+
+            static class SubClassWithInjectMethod extends SuperClassWithInjectMethod {
+                int subCalled = 0;
+
+                @Inject
+                void installAnother() {
+                    subCalled = superCalled + 1;
+                }
+            }
+
+            @Test
+            public void should_override_inject_method_from_super_class() {
+                config.bind(SubClassWithInjectMethod.class, SubClassWithInjectMethod.class);
+
+                SubClassWithInjectMethod component = config.getContext().get(SubClassWithInjectMethod.class).get();
+                assertEquals(1, component.superCalled);
+                assertEquals(2, component.subCalled);
+            }
+
+            static class SubclassOverrideSuperclassWithInject extends SuperClassWithInjectMethod {
+                @Inject
+                @Override
+                void install() {
+                    super.install();
+                }
+            }
+
+            @Test
+            public void should_only_call_once_if_subclass_override_superclass_inject_method() {
+                config.bind(SubclassOverrideSuperclassWithInject.class, SubclassOverrideSuperclassWithInject.class);
+
+                SubclassOverrideSuperclassWithInject component = config.getContext().get(SubclassOverrideSuperclassWithInject.class).get();
+                assertEquals(1, component.superCalled);
+            }
+
+            static class SubclassOverrideSuperclassWithNoInject extends SuperClassWithInjectMethod {
+                @Override
+                void install() {
+                    super.install();
+                }
+            }
+
+            @Test
+            public void should_not_call_inject_method_if_subclass_with_no_inject() {
+                config.bind(SubclassOverrideSuperclassWithNoInject.class, SubclassOverrideSuperclassWithNoInject.class);
+
+                SubclassOverrideSuperclassWithNoInject component = config.getContext().get(SubclassOverrideSuperclassWithNoInject.class).get();
+                assertEquals(0, component.superCalled);
+            }
+
             // TODO: include dependency from inject method
+            @Test
+            public void should_include_dependency_from_inject_method() {
+                ConstructorInjectProvider<ComponentWithMethodInject> provider = new ConstructorInjectProvider<>(ComponentWithMethodInject.class);
+
+                assertArrayEquals(new Class<?>[] {Dependency.class}, provider.getDependencies().toArray(Class<?>[]::new));
+            }
+
             // TODO: throw exception if type parameter defined
 
         }
@@ -348,52 +460,6 @@ class ComponentWithFieldInject implements Component {
 
     public void setDependency(Dependency dependency) {
         this.dependency = dependency;
-    }
-
-}
-
-class ComponentWithMethodInject implements Component {
-
-    private Dependency dependency;
-
-    public Dependency getDependency() {
-        return dependency;
-    }
-
-    @Inject
-    public void setDependency(Dependency dependency) {
-        this.dependency = dependency;
-    }
-
-}
-
-class ComponentWithNoArgsMethodInject implements Component {
-
-    @Inject
-    public String getVersion() {
-        return "1.0";
-    }
-
-}
-
-class ComponentWithMultiArgsMethodInject implements Component {
-
-    private Dependency dependency;
-
-    private AnotherDependency anotherDependency;
-
-    public Dependency getDependency() {
-        return dependency;
-    }
-
-    public AnotherDependency getAnotherDependency() {
-        return anotherDependency;
-    }
-
-    @Inject
-    public void setDependencies(Dependency dependency, AnotherDependency anotherDependency) {
-        this.dependency = dependency;
-        this.anotherDependency = anotherDependency;
     }
 
 }

@@ -6,8 +6,8 @@ apply plugin: 'idea'
 
 group 'com.yufenghui'
 version '1.0-SNAPSHOT'
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
 
 ext {
     springBootVersion = '2.3.12.RELEASE'
