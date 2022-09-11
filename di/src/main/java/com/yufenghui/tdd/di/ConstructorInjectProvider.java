@@ -23,9 +23,21 @@ class ConstructorInjectProvider<T> implements ComponentProvider<T> {
     private List<Method> methods;
 
     public ConstructorInjectProvider(Class<T> component) {
+        if(Modifier.isAbstract(component.getModifiers())) {
+            throw new IllegalComponentException("component is abstract");
+        }
+
         this.constructor = getInjectConstructor(component);
         this.fields = getInjectFields(component);
         this.methods = getInjectMethods(component);
+
+        if(fields.stream().anyMatch(f -> Modifier.isFinal(f.getModifiers()))) {
+            throw new IllegalComponentException("component field is final");
+        }
+
+        if(methods.stream().anyMatch(m -> m.getTypeParameters().length != 0)) {
+            throw new IllegalComponentException("component method with type parameter is not allowed.");
+        }
     }
 
     private Constructor<T> getInjectConstructor(Class<T> component) {

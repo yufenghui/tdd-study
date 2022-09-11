@@ -43,7 +43,22 @@ public class ContainerTest {
         }
 
         // TODO: abstract class
+        abstract class AbstractComponent implements Component {
+            @Inject
+            public AbstractComponent() {
+            }
+        }
+
+        @Test
+        public void should_throw_exception_if_component_is_abstract() {
+            assertThrows(IllegalComponentException.class, () -> new ConstructorInjectProvider<>(AbstractComponent.class));
+        }
+
         // TODO: interface
+        @Test
+        public void should_throw_exception_if_component_is_interface() {
+            assertThrows(IllegalComponentException.class, () -> new ConstructorInjectProvider<>(Component.class));
+        }
 
         // TODO: component not exist
         @Test
@@ -184,7 +199,18 @@ public class ContainerTest {
             }
 
             // TODO: throw exception if dependency not found
+
             // TODO: throw exception if field is final
+            static class FinalInjectFieldComponent {
+                @Inject
+                final Dependency dependency = null;
+            }
+
+            @Test
+            public void should_throw_exception_if_field_is_final() {
+                assertThrows(IllegalComponentException.class, () -> new ConstructorInjectProvider<>(FinalInjectFieldComponent.class));
+            }
+
             // TODO: throw exception if cyclic dependency
 
         }
@@ -351,6 +377,17 @@ public class ContainerTest {
             }
 
             // TODO: throw exception if type parameter defined
+            static class InjectMethodWithTypeParameter {
+                @Inject
+                <T> void install() {
+
+                }
+            }
+
+            @Test
+            public void should_throw_exception_if_method_with_type_parameter() {
+                assertThrows(IllegalComponentException.class, () -> new ConstructorInjectProvider<>(InjectMethodWithTypeParameter.class));
+            }
 
         }
 
